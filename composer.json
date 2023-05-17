@@ -1,0 +1,21 @@
+{
+    "name": "mano/sorted-linked-list",
+    "type": "library",
+    "description": "Simple implementation of sorted linked list.",
+    "authors": [
+        {
+            "name": "Milos Hejny",
+            "email": "miloshejny@email.cz"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Mano\\SortedLinkedList\\": "src/"
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.1",
+        "friendsofphp/php-cs-fixer": "^3.16",
+        "phpstan/phpstan": "^1.10"
+    }
+}
