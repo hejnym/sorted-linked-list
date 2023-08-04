@@ -4,19 +4,26 @@ declare(strict_types=1);
 
 namespace Mano\SortedLinkedList;
 
+use Mano\SortedLinkedList\Iterator\DataIterator;
+use Mano\SortedLinkedList\Iterator\IteratorInterface;
+use Mano\SortedLinkedList\Iterator\NodeIterator;
+
 /**
- * @implements \Iterator<?Node>
+ * @implements \IteratorAggregate<?Node>
  */
-class SortedLinkedList implements \Iterator
+class SortedLinkedList implements \IteratorAggregate
 {
     private NodeFactory $factory;
 
     private ?Node $head = null;
-    private ?Node $pointer = null;
+
+    private NodeIterator $nodeIterator;
 
     public function __construct(NodeFactory $factory)
     {
         $this->factory = $factory;
+
+        $this->nodeIterator = new NodeIterator($this);
     }
 
     /**
@@ -25,26 +32,14 @@ class SortedLinkedList implements \Iterator
     public function createFromArray(array $list): void
     {
         $this->head = $this->factory->createHeadNodeFromArray($list);
-        $this->rewind();
-    }
-
-    public function getData(): \Generator
-    {
-        if($this->isEmpty()) {
-            return null;
-        }
-
-        /** @var Node $node */
-        foreach ($this as $node) {
-            yield $node->data;
-        }
+        $this->nodeIterator->rewind();
     }
 
     public function push(int|string $data): void
     {
         if ($this->isEmpty()) {
             $this->head = $this->factory->createNode($data, null);
-            $this->rewind();
+            $this->nodeIterator->rewind();
 
             return;
         }
@@ -55,7 +50,7 @@ class SortedLinkedList implements \Iterator
         }
 
         /** @var Node $node */
-        foreach ($this as $node) {
+        foreach ($this->nodeIterator as $node) {
             if($node->nextNode === null) {
                 $this->factory->createAfterNode($node, $data);
                 return;
@@ -75,35 +70,18 @@ class SortedLinkedList implements \Iterator
         // TODO - implement in similar manner as push
     }
 
+    public function getIterator(): IteratorInterface
+    {
+        return new DataIterator($this);
+    }
+
     public function isEmpty(): bool
     {
         return $this->head === null;
     }
 
-    public function current(): mixed
+    public function getHead(): ?Node
     {
-        return $this->pointer;
-    }
-
-    public function next(): void
-    {
-        if($this->pointer) {
-            $this->pointer = $this->pointer->nextNode;
-        }
-    }
-
-    public function valid(): bool
-    {
-        return $this->pointer !== null;
-    }
-
-    public function rewind(): void
-    {
-        $this->pointer = $this->head;
-    }
-
-    public function key(): mixed
-    {
-        return null;
+        return $this->head;
     }
 }

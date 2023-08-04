@@ -27,9 +27,11 @@ class SortedLinkedListIntegrationTest extends TestCase
 
         $this->list->createFromArray(['first', 'second']);
 
-        $this->assertEquals($expectedHead, $this->list->current());
-        $this->list->next();
-        $this->assertEquals($expectedHead->nextNode, $this->list->current());
+        $iterator = $this->list->getIterator();
+
+        $this->assertEquals($expectedHead->data, $iterator->current());
+        $iterator->next();
+        $this->assertEquals($expectedHead->nextNode?->data, $iterator->current());
     }
 
 
@@ -39,7 +41,7 @@ class SortedLinkedListIntegrationTest extends TestCase
         $this->list->push('2');
         $this->assertFalse($this->list->isEmpty());
 
-        $this->assertSame(['2'], iterator_to_array($this->list->getData()));
+        $this->assertSame(['2'], iterator_to_array($this->list));
     }
 
     /**
@@ -53,7 +55,7 @@ class SortedLinkedListIntegrationTest extends TestCase
 
         $this->list->push($newData);
 
-        $this->assertSame($expectedData, iterator_to_array($this->list->getData()));
+        $this->assertSame($expectedData, iterator_to_array($this->list));
     }
 
     public static function provideMultipleVariants(): Iterator
@@ -65,5 +67,32 @@ class SortedLinkedListIntegrationTest extends TestCase
         yield  'push to alphabet' => [['a', 'c', 'd'], 'b' , ['a', 'b', 'c', 'd']];
         yield  'push to alphanumeric' => [[1, 'b', '4'], '5' , [1, '4', '5', 'b']];
         yield  'test edge cases' => [[1, 4, 5, 5], '5' , [1, 4, '5', 5, 5]];
+    }
+
+    /**
+     * @dataProvider provideLoops
+     */
+    public function testPushDuringLoop(int $valuePushed, int $atLoop, int $loopsCount): void
+    {
+        $this->list->createFromArray([1, 3, 5]);
+
+        $i = 0;
+        foreach ($this->list as $move) {
+            $i++;
+
+            if($i === $atLoop) {
+                $this->list->push($valuePushed); // TODO: change
+            }
+        }
+
+        $this->assertSame($loopsCount, $i);
+    }
+
+    public static function provideLoops(): Iterator
+    {
+        // int $valuePushed, int $atLoop, int $loopsCount
+        yield  'push before current pointer will not affect loop' => [1, 3, 3];
+        yield  'push before current pointer will not affect loop #2' => [2, 2, 3];
+        yield  'after before current pointer will affect loop' => [4, 2, 4];
     }
 }
