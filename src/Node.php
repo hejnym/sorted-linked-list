@@ -11,4 +11,9 @@ class Node
         public ?Node $nextNode = null
     ) {
     }
+
+    public function isLast(): bool
+    {
+        return $this->nextNode === null;
+    }
 }

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Mano\SortedLinkedList;
 
+use Mano\SortedLinkedList\Comparator\Alpanuberic;
+use Mano\SortedLinkedList\Comparator\ComparatorInterface;
 use Mano\SortedLinkedList\Iterator\DataIterator;
 use Mano\SortedLinkedList\Iterator\IteratorInterface;
 use Mano\SortedLinkedList\Iterator\NodeIterator;
@@ -18,12 +20,15 @@ class SortedLinkedList implements \IteratorAggregate
     private ?Node $head = null;
 
     private NodeIterator $nodeIterator;
+    private ComparatorInterface $comparator;
 
-    public function __construct(NodeFactory $factory)
-    {
+    public function __construct(
+        NodeFactory $factory,
+        ?ComparatorInterface $comparator = null
+    ) {
         $this->factory = $factory;
-
         $this->nodeIterator = new NodeIterator($this);
+        $this->comparator = $comparator ?? new Alpanuberic();
     }
 
     /**
@@ -35,28 +40,26 @@ class SortedLinkedList implements \IteratorAggregate
         $this->nodeIterator->rewind();
     }
 
-    public function push(int|string $data): void
+    public function push(mixed $data): void
     {
-        if ($this->isEmpty()) {
-            $this->head = $this->factory->createNode($data, null);
-            $this->nodeIterator->rewind();
+        $isLessThanInitialNode = $this->comparator->compare($data, $this->head?->data) === -1;
 
-            return;
-        }
-
-        if($this->head && $data < $this->head->data) {
+        if ($this->isEmpty() || $isLessThanInitialNode) {
             $this->head = $this->factory->createNode($data, $this->head);
             return;
         }
 
         /** @var Node $node */
         foreach ($this->nodeIterator as $node) {
-            if($node->nextNode === null) {
+            if($node->isLast()) {
                 $this->factory->createAfterNode($node, $data);
                 return;
             }
 
-            if ($data >= $node->data && $data <= $node->nextNode->data) {
+            $isGreaterOrEqualToCurrentNode = $this->comparator->compare($data, $node->data) !== -1;
+            $isLessThanOrEqualToNextNode = $this->comparator->compare($data, $node->nextNode?->data) !== 1;
+
+            if ($isGreaterOrEqualToCurrentNode && $isLessThanOrEqualToNextNode) {
                 $this->factory->createAfterNode($node, $data);
                 return;
             }

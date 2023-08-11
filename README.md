@@ -32,6 +32,3 @@ foreach ($list as $item) {
     $list->push(1);
 }
 ```
-
-## TODO
-- comparator switches - make it extendable
