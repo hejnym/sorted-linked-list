@@ -13,9 +13,9 @@ class DataIterator implements IteratorInterface
     private int $index = 0;
 
     public function __construct(
-        private readonly SortedLinkedList $list
+        private readonly ?Node $head
     ) {
-        $this->nodeIterator = new NodeIterator($this->list);
+        $this->nodeIterator = new NodeIterator($this->head);
     }
 
     public function current(): string|int|null

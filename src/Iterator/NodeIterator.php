@@ -12,9 +12,9 @@ class NodeIterator implements IteratorInterface
     private ?Node $pointer;
 
     public function __construct(
-        private readonly SortedLinkedList $list
+        private readonly ?Node $head
     ) {
-        $this->pointer = $this->list->getHead();
+        $this->pointer = $head;
     }
 
     public function current(): mixed
@@ -36,7 +36,7 @@ class NodeIterator implements IteratorInterface
 
     public function rewind(): void
     {
-        $this->pointer = $this->list->getHead();
+        $this->pointer = $this->head;
     }
 
     public function key(): mixed

@@ -2,20 +2,21 @@
 
 declare(strict_types=1);
 
+use Mano\SortedLinkedList\Comparator\Alpanuberic;
 use Mano\SortedLinkedList\Node;
-use Mano\SortedLinkedList\NodeFactory;
+use Mano\SortedLinkedList\Search\LinearSearch;
 use Mano\SortedLinkedList\SortedLinkedList;
 use PHPUnit\Framework\TestCase;
 
 class SortedLinkedListIntegrationTest extends TestCase
 {
-    private NodeFactory $factory;
     private SortedLinkedList $list;
+    private LinearSearch $search;
 
     protected function setUp(): void
     {
-        $this->factory = new NodeFactory();
-        $this->list = new SortedLinkedList($this->factory);
+        $this->search = new LinearSearch(new Alpanuberic());
+        $this->list = new SortedLinkedList($this->search);
     }
 
     public function testCreateFromArray(): void

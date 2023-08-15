@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace Mano\SortedLinkedList;
 
-use Mano\SortedLinkedList\Comparator\Alpanuberic;
-use Mano\SortedLinkedList\Comparator\ComparatorInterface;
 use Mano\SortedLinkedList\Iterator\DataIterator;
 use Mano\SortedLinkedList\Iterator\IteratorInterface;
-use Mano\SortedLinkedList\Iterator\NodeIterator;
+use Mano\SortedLinkedList\Search\LinearSearch;
+use Mano\SortedLinkedList\Search\SearchInterface;
 
 /**
  * @implements \IteratorAggregate<?Node>
@@ -19,16 +18,13 @@ class SortedLinkedList implements \IteratorAggregate
 
     private ?Node $head = null;
 
-    private NodeIterator $nodeIterator;
-    private ComparatorInterface $comparator;
+    private SearchInterface $search;
 
     public function __construct(
-        NodeFactory $factory,
-        ?ComparatorInterface $comparator = null
+        SearchInterface $search,
     ) {
-        $this->factory = $factory;
-        $this->nodeIterator = new NodeIterator($this);
-        $this->comparator = $comparator ?? new Alpanuberic();
+        $this->factory = new NodeFactory();
+        $this->search = $search;
     }
 
     /**
@@ -37,35 +33,27 @@ class SortedLinkedList implements \IteratorAggregate
     public function createFromArray(array $list): void
     {
         $this->head = $this->factory->createHeadNodeFromArray($list);
-        $this->nodeIterator->rewind();
     }
 
     public function push(mixed $data): void
     {
-        $isLessThanInitialNode = $this->comparator->compare($data, $this->head?->data) === -1;
-
-        if ($this->isEmpty() || $isLessThanInitialNode) {
+        if ($this->isEmpty()) {
             $this->head = $this->factory->createNode($data, $this->head);
             return;
         }
 
-        /** @var Node $node */
-        foreach ($this->nodeIterator as $node) {
-            if($node->isLast()) {
-                $this->factory->createAfterNode($node, $data);
-                return;
-            }
-
-            $isGreaterOrEqualToCurrentNode = $this->comparator->compare($data, $node->data) !== -1;
-            $isLessThanOrEqualToNextNode = $this->comparator->compare($data, $node->nextNode?->data) !== 1;
-
-            if ($isGreaterOrEqualToCurrentNode && $isLessThanOrEqualToNextNode) {
-                $this->factory->createAfterNode($node, $data);
-                return;
-            }
+        if($this->head === null) {
+            throw new \LogicException('Head must exist at this point.');
         }
 
-        throw new \LogicException('Node must be always created, this must be never reached.');
+        $closestNode = $this->search->getNodeThatPrecedesNewOne($data, $this->head);
+
+        if($closestNode === null) {
+            $this->head = $this->factory->createNode($data, $this->head);
+        } else {
+            $this->factory->createAfterNode($closestNode, $data);
+        }
+
     }
 
     public function delete(): void
@@ -75,16 +63,11 @@ class SortedLinkedList implements \IteratorAggregate
 
     public function getIterator(): IteratorInterface
     {
-        return new DataIterator($this);
+        return new DataIterator($this->head);
     }
 
     public function isEmpty(): bool
     {
         return $this->head === null;
-    }
-
-    public function getHead(): ?Node
-    {
-        return $this->head;
     }
 }
