@@ -17,7 +17,7 @@ class NodeIterator implements IteratorInterface
         $this->pointer = $head;
     }
 
-    public function current(): mixed
+    public function current(): Node|null
     {
         return $this->pointer;
     }
@@ -39,7 +39,7 @@ class NodeIterator implements IteratorInterface
         $this->pointer = $this->head;
     }
 
-    public function key(): mixed
+    public function key(): null
     {
         return null;
     }

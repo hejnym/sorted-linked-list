@@ -47,10 +47,10 @@ class SortedLinkedListIntegrationTest extends TestCase
 
     /**
      * @dataProvider provideMultipleVariants
-     * @param array<int|string> $currentList
-     * @param array<int|string> $expectedData
+     * @param array<mixed> $currentList
+     * @param array<mixed> $expectedData
      */
-    public function testPushMultipleVariants(array $currentList, int|string $newData, array $expectedData): void
+    public function testPushMultipleVariants(array $currentList, mixed $newData, array $expectedData): void
     {
         $this->list->createFromArray($currentList);
 

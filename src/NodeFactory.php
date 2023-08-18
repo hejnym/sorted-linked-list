@@ -6,12 +6,12 @@ namespace Mano\SortedLinkedList;
 
 class NodeFactory
 {
-    public function createNode(int|string $data, ?Node $nextNode): Node
+    public function createNode(mixed $data, ?Node $nextNode): Node
     {
         return new Node($data, $nextNode);
     }
 
-    public function createAfterNode(Node $node, int|string $data): Node
+    public function createAfterNode(Node $node, mixed $data): Node
     {
         if($node->nextNode) {
             $newNode = $this->createNode($data, $node->nextNode);
@@ -25,7 +25,7 @@ class NodeFactory
     }
 
     /**
-     * @param array<int|string> $list
+     * @param array<mixed> $list
      */
     public function createHeadNodeFromArray(array $list): Node
     {

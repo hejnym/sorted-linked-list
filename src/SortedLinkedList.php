@@ -6,7 +6,6 @@ namespace Mano\SortedLinkedList;
 
 use Mano\SortedLinkedList\Iterator\DataIterator;
 use Mano\SortedLinkedList\Iterator\IteratorInterface;
-use Mano\SortedLinkedList\Search\LinearSearch;
 use Mano\SortedLinkedList\Search\SearchInterface;
 
 /**
@@ -28,7 +27,7 @@ class SortedLinkedList implements \IteratorAggregate
     }
 
     /**
-     * @param array<int|string> $list
+     * @param array<mixed> $list
      */
     public function createFromArray(array $list): void
     {
