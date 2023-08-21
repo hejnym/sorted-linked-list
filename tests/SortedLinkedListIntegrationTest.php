@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Mano\SortedLinkedList\Comparator\Alpanuberic;
+use Mano\SortedLinkedList\Comparator\Alphanumeric;
 use Mano\SortedLinkedList\Node;
 use Mano\SortedLinkedList\Search\LinearSearch;
 use Mano\SortedLinkedList\SortedLinkedList;
@@ -15,7 +15,7 @@ class SortedLinkedListIntegrationTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->search = new LinearSearch(new Alpanuberic());
+        $this->search = new LinearSearch(new Alphanumeric());
         $this->list = new SortedLinkedList($this->search);
     }
 
