@@ -96,4 +96,27 @@ class SortedLinkedListIntegrationTest extends TestCase
         yield  'push before current pointer will not affect loop #2' => [2, 2, 3];
         yield  'after before current pointer will affect loop' => [4, 2, 4];
     }
+
+    /**
+     * @dataProvider provideSearch
+     */
+    public function testSearch(mixed $valueSearched, mixed $expectedResult): void
+    {
+        $this->list->createFromArray([1, 3, 5]);
+
+        $this->assertSame(
+            $expectedResult,
+            $this->list->find($valueSearched)?->data
+        );
+
+    }
+
+    public static function provideSearch(): Iterator
+    {
+        // int|string $valueSearched, bool $found
+        yield   [2, null];
+        yield   [3, 3];
+        yield   [5, 5];
+        yield   [6, null];
+    }
 }

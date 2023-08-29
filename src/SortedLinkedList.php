@@ -55,6 +55,15 @@ class SortedLinkedList implements \IteratorAggregate
 
     }
 
+    public function find(mixed $data): ?Node
+    {
+        if ($this->head === null) {
+            return null;
+        }
+
+        return $this->search->getNodeNodeWithData($data, $this->head);
+    }
+
     public function delete(): void
     {
         // TODO - implement in similar manner as push

@@ -31,3 +31,9 @@ foreach ($list as $item) {
     $list->push(1);
 }
 ```
+
+TODO:
+- debug steps it took to search 
+- exist method
+- sentinel use
+- skip list

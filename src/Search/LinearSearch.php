@@ -18,30 +18,51 @@ class LinearSearch implements SearchInterface
 
     }
 
-    public function getNodeThatPrecedesNewOne(mixed $data, Node $head): ?Node
+    public function getNodeThatPrecedesNewOne(mixed $data, Node $startingNode): ?Node
     {
-        $this->nodeIterator = new NodeIterator($head);
+        return $this->compare($startingNode, function (Node $node) use ($data, $startingNode) {
 
-        $isLessThanInitialNode = $this->comparator->compare($data, $head->data) === -1;
+            $isLessThanInitialNode = $this->comparator->compare($data, $startingNode->data) === -1;
 
-        if($isLessThanInitialNode) {
-            return null;
-        }
-
-        /** @var Node $head */
-        foreach ($this->nodeIterator as $head) {
-            if($head->isLast()) {
-                return $head;
+            if($isLessThanInitialNode) {
+                return null;
             }
 
-            $isGreaterOrEqualToCurrentNode = $this->comparator->compare($data, $head->data) !== -1;
-            $isLessThanOrEqualToNextNode = $this->comparator->compare($data, $head->nextNode?->data) !== 1;
+            if($node->isLast()) {
+                return $node;
+            }
+
+            $isGreaterOrEqualToCurrentNode = $this->comparator->compare($data, $node->data) !== -1;
+            $isLessThanOrEqualToNextNode = $this->comparator->compare($data, $node->nextNode?->data) !== 1;
 
             if ($isGreaterOrEqualToCurrentNode && $isLessThanOrEqualToNextNode) {
-                return $head;
+                return $node;
+            }
+
+            return null;
+        });
+    }
+
+    public function getNodeNodeWithData(mixed $data, Node $head): ?Node
+    {
+        return $this->compare($head, function (Node $node) use ($data) {
+            if ($this->comparator->compare($data, $node->data) === 0) {
+                return $node;
+            }
+        });
+    }
+
+    private function compare(Node $startingNode, callable $f): ?Node
+    {
+        $this->nodeIterator = new NodeIterator($startingNode);
+
+        foreach ($this->nodeIterator as $node) {
+            $result = $f($node);
+            if($result !== null) {
+                return $result;
             }
         }
 
-        throw new \LogicException('This can not happen.');
+        return null;
     }
 }
