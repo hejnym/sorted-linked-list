@@ -18,16 +18,9 @@ class LinearSearch implements SearchInterface
 
     }
 
-    public function getNodeThatPrecedesNewOne(mixed $data, Node $startingNode): ?Node
+    public function getNodeThatPrecedesNewOne(mixed $data, Node $startingNode): Node
     {
-        return $this->compare($startingNode, function (Node $node) use ($data, $startingNode) {
-
-            $isLessThanInitialNode = $this->comparator->compare($data, $startingNode->data) === -1;
-
-            if($isLessThanInitialNode) {
-                return null;
-            }
-
+        $result = $this->compare($startingNode, function (Node $node) use ($data) {
             if($node->isLast()) {
                 return $node;
             }
@@ -41,6 +34,12 @@ class LinearSearch implements SearchInterface
 
             return null;
         });
+
+        if($result === null) {
+            throw new \LogicException('Some node must be returned');
+        }
+
+        return $result;
     }
 
     public function getNodeNodeWithData(mixed $data, Node $head): ?Node

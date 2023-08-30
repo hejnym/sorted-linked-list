@@ -6,6 +6,9 @@ namespace Mano\SortedLinkedList;
 
 class Node
 {
+	private const HEAD_SENTINEL_VALUE = -INF;
+	private const TAIL_SENTINEL_VALUE = INF;
+
     public function __construct(
         public mixed $data,
         public ?Node $nextNode = null
@@ -16,4 +19,12 @@ class Node
     {
         return $this->nextNode === null;
     }
+
+	public function isHeadSentinel(): bool {
+		return $this->data === self::HEAD_SENTINEL_VALUE;
+	}
+
+	public function isTailSentinel(): bool {
+		return $this->data === self::TAIL_SENTINEL_VALUE;
+	}
 }

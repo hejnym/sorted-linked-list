@@ -11,6 +11,11 @@ class NodeFactory
         return new Node($data, $nextNode);
     }
 
+    public function createSentinelHead(?Node $beforeNode = null): Node
+    {
+        return new Node(-INF, $beforeNode);
+    }
+
     public function createAfterNode(Node $node, mixed $data): Node
     {
         if($node->nextNode) {
@@ -46,6 +51,6 @@ class NodeFactory
             $currentNode = $this->createNode($element, $currentNode);
         }
 
-        return $currentNode;
+        return $this->createSentinelHead($currentNode);
     }
 }

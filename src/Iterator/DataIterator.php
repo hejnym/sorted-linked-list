@@ -12,9 +12,9 @@ class DataIterator implements IteratorInterface
     private int $index = 0;
 
     public function __construct(
-        private readonly ?Node $head
+        private readonly Node $head
     ) {
-        $this->nodeIterator = new NodeIterator($this->head);
+        $this->nodeIterator = new NodeIterator($this->head, true);
     }
 
     public function current(): mixed

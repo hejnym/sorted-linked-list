@@ -15,7 +15,7 @@ class SortedLinkedList implements \IteratorAggregate
 {
     private NodeFactory $factory;
 
-    private ?Node $head = null;
+    private Node $sentinelHead;
 
     private SearchInterface $search;
 
@@ -23,6 +23,7 @@ class SortedLinkedList implements \IteratorAggregate
         SearchInterface $search,
     ) {
         $this->factory = new NodeFactory();
+        $this->sentinelHead = $this->factory->createSentinelHead();
         $this->search = $search;
     }
 
@@ -31,37 +32,18 @@ class SortedLinkedList implements \IteratorAggregate
      */
     public function createFromArray(array $list): void
     {
-        $this->head = $this->factory->createHeadNodeFromArray($list);
+        $this->sentinelHead = $this->factory->createHeadNodeFromArray($list);
     }
 
     public function push(mixed $data): void
     {
-        if ($this->isEmpty()) {
-            $this->head = $this->factory->createNode($data, $this->head);
-            return;
-        }
-
-        if($this->head === null) {
-            throw new \LogicException('Head must exist at this point.');
-        }
-
-        $closestNode = $this->search->getNodeThatPrecedesNewOne($data, $this->head);
-
-        if($closestNode === null) {
-            $this->head = $this->factory->createNode($data, $this->head);
-        } else {
-            $this->factory->createAfterNode($closestNode, $data);
-        }
-
+        $closestNode = $this->search->getNodeThatPrecedesNewOne($data, $this->sentinelHead);
+        $this->factory->createAfterNode($closestNode, $data);
     }
 
     public function find(mixed $data): ?Node
     {
-        if ($this->head === null) {
-            return null;
-        }
-
-        return $this->search->getNodeNodeWithData($data, $this->head);
+        return $this->search->getNodeNodeWithData($data, $this->sentinelHead);
     }
 
     public function delete(): void
@@ -71,11 +53,11 @@ class SortedLinkedList implements \IteratorAggregate
 
     public function getIterator(): IteratorInterface
     {
-        return new DataIterator($this->head);
+        return new DataIterator($this->sentinelHead);
     }
 
     public function isEmpty(): bool
     {
-        return $this->head === null;
+        return $this->sentinelHead->nextNode === null;
     }
 }

@@ -108,7 +108,6 @@ class SortedLinkedListIntegrationTest extends TestCase
             $expectedResult,
             $this->list->find($valueSearched)?->data
         );
-
     }
 
     public static function provideSearch(): Iterator

@@ -23,8 +23,9 @@ class NodeFactoryTest extends TestCase
         $thirdExpectedNode = new Node(4, $fourthExpectedNode);
         $secondExpectedNode = new Node('2', $thirdExpectedNode);
         $firstExpectedNode = new Node('1', $secondExpectedNode);
+        $sentinel = new Node(-INF, $firstExpectedNode);
 
-        $this->assertEquals($firstExpectedNode, $headNode);
+        $this->assertEquals($sentinel, $headNode);
     }
 
     public function testCreateAfterNode(): void
