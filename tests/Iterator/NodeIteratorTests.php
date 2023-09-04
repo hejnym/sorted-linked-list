@@ -9,11 +9,13 @@ use PHPUnit\Framework\TestCase;
 class NodeIteratorTests extends TestCase
 {
     private Node $sentinelHead;
+    private Node $sentinelTail;
     private Node $firstItem;
 
     protected function setUp(): void
     {
-        $this->firstItem = new Node('first element data', null);
+        $this->sentinelTail = new Node(INF, null);
+        $this->firstItem = new Node('first element data', $this->sentinelTail);
         $this->sentinelHead = new Node(
             - INF,
             $this->firstItem
@@ -38,14 +40,38 @@ class NodeIteratorTests extends TestCase
             $skipSentinels ? $this->firstItem : $this->sentinelHead,
             $nodeIterator->current()
         );
+
+        $nodeIterator->next();
+
+        $this->assertSame(!$skipSentinels, $nodeIterator->valid());
+
+        if($skipSentinels) {
+            $this->expectException(\RuntimeException::class);
+            $nodeIterator->current();
+        } else {
+            $this->assertSame($this->firstItem, $nodeIterator->current());
+        }
+
+        $nodeIterator->next();
+
+        $this->assertSame(!$skipSentinels, $nodeIterator->valid());
+
+        if($skipSentinels) {
+            $this->expectException(\RuntimeException::class);
+            $nodeIterator->current();
+        } else {
+            $this->assertSame($this->sentinelTail, $nodeIterator->current());
+        }
+
     }
+
 
     /**
      * @dataProvider provideSkipSentinel
      */
     public function testEmpty(bool $skipSentinels): void
     {
-        $nodeIterator = new NodeIterator($sentinel = new Node(-INF), $skipSentinels);
+        $nodeIterator = new NodeIterator($sentinel = new Node(-INF, new Node(INF, null)), $skipSentinels);
         $this->assertSame($skipSentinels, !$nodeIterator->valid());
 
         if($skipSentinels) {
@@ -68,13 +94,9 @@ class NodeIteratorTests extends TestCase
     {
         $nodeIterator = new NodeIterator($this->sentinelHead, $skipSentinels);
 
-        $nodes = [];
-        foreach ($nodeIterator as $node) {
-            $nodes[] = $node;
-        }
         $this->assertSame(
-            $skipSentinels ? [$this->firstItem] : [$this->sentinelHead, $this->firstItem],
-            $nodes
+            $skipSentinels ? [$this->firstItem] : [$this->sentinelHead, $this->firstItem, $this->sentinelTail],
+            iterator_to_array($nodeIterator)
         );
     }
 
@@ -83,13 +105,13 @@ class NodeIteratorTests extends TestCase
      */
     public function testLoopWithSentinelOnly(bool $skipSentinels): void
     {
-        $nodeIterator = new NodeIterator($sentinel = new Node(-INF), $skipSentinels);
+        $nodeIterator = new NodeIterator($sentinel = new Node(-INF, $tail = new Node(INF, null)), $skipSentinels);
         $nodes = [];
         foreach ($nodeIterator as $node) {
             $nodes[] = $node;
         }
         $this->assertSame(
-            $skipSentinels ? [] : [$sentinel],
+            $skipSentinels ? [] : [$sentinel, $tail],
             $nodes
         );
     }

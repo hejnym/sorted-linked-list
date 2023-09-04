@@ -13,7 +13,11 @@ class NodeFactory
 
     public function createSentinelHead(?Node $beforeNode = null): Node
     {
-        return new Node(-INF, $beforeNode);
+        if($beforeNode) {
+            return self::createNode(-INF, $beforeNode);
+        }
+
+        return self::createNode(-INF, self::createNode(INF, null));
     }
 
     public function createAfterNode(Node $node, mixed $data): Node
@@ -44,7 +48,7 @@ class NodeFactory
 
         foreach ($list as $index => $element) {
             if ($index === array_key_first($list)) {
-                $currentNode = $this->createNode($element, null);
+                $currentNode = $this->createNode($element, self::createNode(INF, null));
                 continue;
             }
 

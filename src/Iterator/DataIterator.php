@@ -9,7 +9,6 @@ use Mano\SortedLinkedList\Node;
 class DataIterator implements IteratorInterface
 {
     private NodeIterator $nodeIterator;
-    private int $index = 0;
 
     public function __construct(
         private readonly Node $head
@@ -32,7 +31,7 @@ class DataIterator implements IteratorInterface
 
     public function key(): mixed
     {
-        return $this->index++;
+        return $this->nodeIterator->key();
     }
 
     public function valid(): bool

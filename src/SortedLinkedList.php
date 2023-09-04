@@ -6,6 +6,7 @@ namespace Mano\SortedLinkedList;
 
 use Mano\SortedLinkedList\Iterator\DataIterator;
 use Mano\SortedLinkedList\Iterator\IteratorInterface;
+use Mano\SortedLinkedList\Iterator\NodeIterator;
 use Mano\SortedLinkedList\Search\SearchInterface;
 
 /**
@@ -58,6 +59,6 @@ class SortedLinkedList implements \IteratorAggregate
 
     public function isEmpty(): bool
     {
-        return $this->sentinelHead->nextNode === null;
+        return (bool)$this->sentinelHead->nextNode?->isTailSentinel();
     }
 }

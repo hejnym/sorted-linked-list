@@ -19,7 +19,7 @@ class NodeFactoryTest extends TestCase
     {
         $headNode = $this->factory->createHeadNodeFromArray([5,'2',4,'1']);
 
-        $fourthExpectedNode = new Node(5, null);
+        $fourthExpectedNode = new Node(5, new Node(INF, null));
         $thirdExpectedNode = new Node(4, $fourthExpectedNode);
         $secondExpectedNode = new Node('2', $thirdExpectedNode);
         $firstExpectedNode = new Node('1', $secondExpectedNode);

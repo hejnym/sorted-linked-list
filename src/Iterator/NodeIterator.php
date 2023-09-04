@@ -10,6 +10,8 @@ class NodeIterator implements IteratorInterface
 {
     private ?Node $pointer;
 
+    private int $index = 0;
+
     public function __construct(
         private readonly Node $sentinelHead,
         private readonly bool $skipSentinels = false
@@ -23,12 +25,22 @@ class NodeIterator implements IteratorInterface
 
     public function current(): Node
     {
-        if($this->sentinelShouldBeSkipped()) {
-            $this->next();
+        if($this->pointer === null) {
+            throw new \RuntimeException('Can not call current after last node has been reached.');
         }
 
-        if($this->pointer === null) {
-            throw new \RuntimeException('Can not call current on empty iterator.');
+        if($this->skipSentinels) {
+            if($this->pointer->isHeadSentinel()) {
+                $this->next();
+            }
+
+            if($this->isEmptyList()) {
+                throw new \RuntimeException('Can not call current on empty list.');
+            }
+
+            if($this->pointer?->isTailSentinel()) {
+                throw new \RuntimeException('Can not call current on tail sentinel.');
+            }
         }
 
         return $this->pointer;
@@ -41,11 +53,16 @@ class NodeIterator implements IteratorInterface
 
     public function valid(): bool
     {
-        if($this->sentinelShouldBeSkipped() && $this->pointer?->nextNode === null) {
-            return false;
-        }
+        if($this->skipSentinels) {
+            if($this->isEmptyList()) {
+                return false;
+            }
 
-        return $this->pointer !== null;
+            return $this->pointer?->isTailSentinel() === false;
+
+        } else {
+            return $this->pointer !== null;
+        }
     }
 
     public function rewind(): void
@@ -53,13 +70,14 @@ class NodeIterator implements IteratorInterface
         $this->pointer = $this->sentinelHead;
     }
 
-    public function key(): null
+    public function key(): int
     {
-        return null;
+        return $this->index++;
     }
 
-    private function sentinelShouldBeSkipped(): bool
+    private function isEmptyList(): bool
     {
-        return $this->skipSentinels && $this->pointer?->isHeadSentinel();
+        return $this->skipSentinels && $this->pointer?->isHeadSentinel() && $this->pointer->nextNode?->isTailSentinel();
     }
+
 }
