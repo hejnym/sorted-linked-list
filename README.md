@@ -19,21 +19,21 @@ $search = new \Mano\SortedLinkedList\Search\LinearSearch($comparator);
 $list = new \Mano\SortedLinkedList\SortedLinkedList($search);
 
 // either create initially from array
-$list->createFromArray([3, 8, 1]);
+$list->createFromArray([5, 1, 3]);
 
 // or create by pushing element by element
 $list->push('8');
-$list->push(10);
-
+$list->push(2);
 
 foreach ($list as $item) {
     echo $item;
-    $list->push(1);
+
+    $list->push(0); // this will not affect the iteration as the value is pushed before pointer
 }
+
+// output: 1, 2, 3, 5, '8' 
 ```
 
 TODO:
 - debug steps it took to search 
-- exist method
-- sentinel use
 - skip list
