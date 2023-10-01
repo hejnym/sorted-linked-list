@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Mano\SortedLinkedList\Comparator\Alphanumeric;
 use Mano\SortedLinkedList\Node;
-use Mano\SortedLinkedList\Search\LinearSearch;
+use Mano\SortedLinkedList\Search\LinearSearch\LinearSearch;
 use Mano\SortedLinkedList\SortedLinkedList;
 use PHPUnit\Framework\TestCase;
 

@@ -9,7 +9,7 @@ interface SearchInterface
     /**
      * @param mixed $data Data to be inserted
      */
-    public function getNodeThatPrecedesNewOne(mixed $data, Node $startingNode): Node;
+    public function getNodeThatPrecedesNewOne(mixed $data, Node $startingNode): SearchResultInterface;
 
-    public function getNodeNodeWithData(mixed $data, Node $head): ?Node;
+    public function getNodeNodeWithData(mixed $data, Node $head): ?SearchResultInterface;
 }

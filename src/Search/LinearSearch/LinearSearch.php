@@ -2,11 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Mano\SortedLinkedList\Search;
+namespace Mano\SortedLinkedList\Search\LinearSearch;
 
 use Mano\SortedLinkedList\Comparator\ComparatorInterface;
 use Mano\SortedLinkedList\Iterator\NodeIterator;
 use Mano\SortedLinkedList\Node;
+use Mano\SortedLinkedList\Search\SearchInterface;
+use Mano\SortedLinkedList\Search\SearchResultInterface;
 
 class LinearSearch implements SearchInterface
 {
@@ -18,7 +20,7 @@ class LinearSearch implements SearchInterface
 
     }
 
-    public function getNodeThatPrecedesNewOne(mixed $data, Node $startingNode): Node
+    public function getNodeThatPrecedesNewOne(mixed $data, Node $startingNode): SearchResultInterface
     {
         $result = $this->compare($startingNode, function (Node $node) use ($data) {
             if($node->isLast()) {
@@ -42,7 +44,7 @@ class LinearSearch implements SearchInterface
         return $result;
     }
 
-    public function getNodeNodeWithData(mixed $data, Node $head): ?Node
+    public function getNodeNodeWithData(mixed $data, Node $head): ?SearchResultInterface
     {
         return $this->compare($head, function (Node $node) use ($data) {
             if ($this->comparator->compare($data, $node->data) === 0) {
@@ -51,14 +53,14 @@ class LinearSearch implements SearchInterface
         });
     }
 
-    private function compare(Node $startingNode, callable $f): ?Node
+    private function compare(Node $startingNode, callable $f): ?SearchResultInterface
     {
         $this->nodeIterator = new NodeIterator($startingNode);
 
         foreach ($this->nodeIterator as $node) {
             $result = $f($node);
             if($result !== null) {
-                return $result;
+                return new LinearSearchResult($result);
             }
         }
 

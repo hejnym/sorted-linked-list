@@ -14,7 +14,7 @@ As insert time for linked lists is constant O(1) the focus here is to implement 
 ```php
 // your own comparator can be used to evaluate objects or any other forms
 $comparator = new \Mano\SortedLinkedList\Comparator\Alphanumerical()
-$search = new \Mano\SortedLinkedList\Search\LinearSearch($comparator);
+$search = new \Mano\SortedLinkedList\Search\LinearSearch\LinearSearch($comparator);
 
 $list = new \Mano\SortedLinkedList\SortedLinkedList($search);
 
