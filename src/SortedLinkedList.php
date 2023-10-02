@@ -38,13 +38,18 @@ class SortedLinkedList implements \IteratorAggregate
 
     public function push(mixed $data): void
     {
-        $closestNode = $this->search->getNodeThatPrecedesNewOne($data, $this->sentinelHead)->getResult();
+        $closestNode = $this->search->getNodeThatPrecedes($data, $this->sentinelHead)->getResult();
         $this->factory->createAfterNode($closestNode, $data);
     }
 
     public function find(mixed $data): ?Node
     {
-        return $this->search->getNodeNodeWithData($data, $this->sentinelHead)?->getResult();
+        $closestNode = $this->search->getNodeThatPrecedes($data, $this->sentinelHead)->getResult();
+        if($closestNode->nextNode && $closestNode->nextNode->data === $data) {
+            return $closestNode->nextNode;
+        }
+
+        return null;
     }
 
     public function delete(): void
