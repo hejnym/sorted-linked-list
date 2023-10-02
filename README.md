@@ -33,7 +33,3 @@ foreach ($list as $item) {
 
 // output: 1, 2, 3, 5, '8' 
 ```
-
-TODO:
-- debug steps it took to search 
-- skip list
