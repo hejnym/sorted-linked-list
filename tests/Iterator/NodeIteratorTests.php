@@ -116,6 +116,14 @@ class NodeIteratorTests extends TestCase
         );
     }
 
+    public function testCallNextOnNullThrows(): void
+    {
+        $nodeIterator = new NodeIterator(new Node(-INF, null), false);
+        $nodeIterator->next();
+        $this->expectException(\RuntimeException::class);
+        $nodeIterator->next();
+    }
+
     public static function provideSkipSentinel(): \Generator
     {
         yield ['Sentinels skipped' => true];

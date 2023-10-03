@@ -25,12 +25,8 @@ class NodeIterator implements IteratorInterface
 
     public function current(): Node
     {
-        if($this->pointer === null) {
-            throw new \RuntimeException('Can not call current after last node has been reached.');
-        }
-
         if($this->skipSentinels) {
-            if($this->pointer->isHeadSentinel()) {
+            if($this->pointer?->isHeadSentinel()) {
                 $this->next();
             }
 
@@ -43,12 +39,20 @@ class NodeIterator implements IteratorInterface
             }
         }
 
+        if($this->pointer === null) {
+            throw new \RuntimeException('Can not call current after last node has been reached.');
+        }
+
         return $this->pointer;
     }
 
     public function next(): void
     {
-        $this->pointer = $this->pointer?->nextNode;
+        if($this->pointer === null) {
+            throw new \RuntimeException('Can not call next on null pointer.');
+        }
+
+        $this->pointer = $this->pointer->nextNode;
     }
 
     public function valid(): bool
