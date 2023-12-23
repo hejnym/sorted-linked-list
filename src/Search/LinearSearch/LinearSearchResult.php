@@ -13,7 +13,7 @@ class LinearSearchResult implements SearchResultInterface
     {
     }
 
-    public function getResult(): Node
+    public function getNode(): Node
     {
         return $this->node;
     }

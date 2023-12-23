@@ -6,7 +6,6 @@ namespace Mano\SortedLinkedList;
 
 use Mano\SortedLinkedList\Iterator\DataIterator;
 use Mano\SortedLinkedList\Iterator\IteratorInterface;
-use Mano\SortedLinkedList\Iterator\NodeIterator;
 use Mano\SortedLinkedList\Search\SearchInterface;
 
 /**

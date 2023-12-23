@@ -8,5 +8,5 @@ use Mano\SortedLinkedList\Node;
 
 interface SearchResultInterface
 {
-    public function getResult(): Node;
+    public function getNode(): Node;
 }

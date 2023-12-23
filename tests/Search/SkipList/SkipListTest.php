@@ -125,7 +125,7 @@ class SkipListTest extends TestCase
 
         $this->assertSame(
             $expectedFinalNode,
-            $result->getResult()
+            $result->getNode()
         );
 
         $this->assertEquals(
