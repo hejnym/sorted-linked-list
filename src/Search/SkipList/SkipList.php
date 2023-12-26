@@ -6,21 +6,30 @@ namespace Mano\SortedLinkedList\Search\SkipList;
 
 use Mano\SortedLinkedList\Comparator\ComparatorInterface;
 use Mano\SortedLinkedList\Node;
-use Mano\SortedLinkedList\Search\LinearSearch\LinearSearchResult;
+use Mano\SortedLinkedList\Search\BuildAuxiliaryNodesInterface;
 use Mano\SortedLinkedList\Search\SearchInterface;
 use Mano\SortedLinkedList\Search\SearchResultInterface;
 
-final class SkipList implements SearchInterface
+final class SkipList implements SearchInterface, BuildAuxiliaryNodesInterface
 {
-    public function __construct(private readonly ComparatorInterface $comparator)
-    {
+    private SkipNode $sentinelHead;
+
+    public function __construct(
+        private readonly ComparatorInterface $comparator,
+        private readonly SkipNodeFactory $skipNodeFactory,
+        private readonly CoinFlipper $coinFlipper,
+    ) {
     }
 
     public function getNodeThatPrecedes(mixed $data, Node $startingNode): SearchResultInterface
     {
-        $currentNode = $startingNode;
-
         $stack = new VisitedNodesStack();
+
+        if(isset($this->sentinelHead) === false) {
+            $this->sentinelHead = $this->skipNodeFactory->createSentinelHead($startingNode);
+        }
+
+        $currentNode = $this->sentinelHead;
 
         while ($currentNode?->nextNode !== null) {
             $stack->push($currentNode);
@@ -41,5 +50,20 @@ final class SkipList implements SearchInterface
         }
 
         throw new \LogicException('Some node must be returned - the value must fit between sentinels.');
+    }
+
+    public function insertAuxiliaryNodes(VisitedNodesStack $visitedNodesStack, Node $newlyInsertedNode): void
+    {
+        if($this->coinFlipper->isHead() === false) {
+            return;
+        }
+
+        $lastSkipNode = $visitedNodesStack->getLastSkipNode();
+
+        if($lastSkipNode === null) {
+            throw new \LogicException('At least skip node sentinel must exists.');
+        }
+
+        $this->skipNodeFactory->createSkipNode($newlyInsertedNode, $lastSkipNode);
     }
 }

@@ -4,10 +4,13 @@ namespace Search\SkipList;
 
 use Mano\SortedLinkedList\Comparator\Alphanumeric;
 use Mano\SortedLinkedList\Node;
+use Mano\SortedLinkedList\Search\SkipList\CoinFlipper;
 use Mano\SortedLinkedList\Search\SkipList\SkipList;
 use Mano\SortedLinkedList\Search\SkipList\SkipListResult;
 use Mano\SortedLinkedList\Search\SkipList\SkipNode;
+use Mano\SortedLinkedList\Search\SkipList\SkipNodeFactory;
 use Mano\SortedLinkedList\Search\SkipList\VisitedNodesStack;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 
 class SkipListTest extends TestCase
@@ -26,6 +29,13 @@ class SkipListTest extends TestCase
     private SkipNode $threeSkipNode;
     private SkipNode $headSkipNode;
 
+    /**
+     * @var Stub&CoinFlipper
+     */
+    private $coinFlipper;
+
+    private SkipList $skipList;
+
     protected function setUp(): void
     {
         /**
@@ -35,7 +45,7 @@ class SkipListTest extends TestCase
          */
 
         $this->tailSentinel = new Node(INF, null);
-        $this->nineNode = new Node(8, $this->tailSentinel);
+        $this->nineNode = new Node(9, $this->tailSentinel);
         $this->eightNode = new Node(8, $this->nineNode);
         $this->sixNode = new Node(6, $this->eightNode);
         $this->threeNode = new Node(3, $this->sixNode);
@@ -43,85 +53,110 @@ class SkipListTest extends TestCase
         $this->oneNode = new Node(1, $this->twoNode);
         $this->headSentinel = new Node(-INF, $this->oneNode);
 
-        $this->tailSkipNode = new SkipNode(INF, $this->tailSentinel, null);
-        $this->nineSkipNode = new SkipNode(9, $this->nineNode, $this->tailSkipNode);
-        $this->threeSkipNode = new SkipNode(3, $this->threeNode, $this->nineSkipNode);
-        $this->headSkipNode = new SkipNode(-INF, $this->headSentinel, $this->threeSkipNode);
+        $this->tailSkipNode = new SkipNode($this->tailSentinel, null);
+        $this->nineSkipNode = new SkipNode($this->nineNode, $this->tailSkipNode);
+        $this->threeSkipNode = new SkipNode($this->threeNode, $this->nineSkipNode);
+        $this->headSkipNode = new SkipNode($this->headSentinel, $this->threeSkipNode);
+
+        $this->coinFlipper = $this->createStub(CoinFlipper::class);
+        $this->coinFlipper->method('isHead')->willReturn(true);
+
+        $this->skipList = new SkipList(new Alphanumeric(), new SkipNodeFactory(), $this->coinFlipper);
     }
 
-    public function testEmpty(): void
+    public function testSearchEmpty(): void
     {
         $tail = new Node(INF, null);
         $head = new Node(-INF, $tail);
 
-        $skipTail = new SkipNode(INF, $tail, null);
-        $this->headSkipNode = new SkipNode(-INF, $head, $skipTail);
+        $skipTail = new SkipNode($tail, null);
+        $this->headSkipNode = new SkipNode($head, $skipTail);
 
-        $this->assertSkipListResult(
+        $this->assertSkipListSearch(
             2,
             $head,
             new VisitedNodesStack($this->headSkipNode, $head)
         );
     }
 
-    public function testResultAfterMiddleSkipNode(): void
+    public function testSearchAfterMiddleSkipNode(): void
     {
-        $this->assertSkipListResult(
+        $this->assertSkipListSearch(
             '8',
             $this->sixNode,
             new VisitedNodesStack($this->headSkipNode, $this->threeSkipNode, $this->threeNode, $this->sixNode)
         );
 
-        $this->assertSkipListResult(
+        $this->assertSkipListSearch(
             '6',
             $this->threeNode,
             new VisitedNodesStack($this->headSkipNode, $this->threeSkipNode, $this->threeNode)
         );
     }
 
-    public function testResultBeforeMiddleSkipNode(): void
+    public function testSearchBeforeMiddleSkipNode(): void
     {
-        $this->assertSkipListResult(
+        $this->assertSkipListSearch(
             '1',
             $this->headSentinel,
             new VisitedNodesStack($this->headSkipNode, $this->headSentinel)
         );
 
-        $this->assertSkipListResult(
+        $this->assertSkipListSearch(
             '3',
             $this->twoNode,
             new VisitedNodesStack($this->headSkipNode, $this->headSentinel, $this->oneNode, $this->twoNode)
         );
     }
 
-    public function testMaxResult(): void
+    public function testSearchMax(): void
     {
-        $this->assertSkipListResult(
+        $this->assertSkipListSearch(
             25,
             $this->nineNode,
             new VisitedNodesStack($this->headSkipNode, $this->threeSkipNode, $this->nineSkipNode, $this->nineNode)
         );
     }
 
-    public function testMinResult(): void
+    public function testSearchMin(): void
     {
-        $this->assertSkipListResult(
+        $this->assertSkipListSearch(
             -4,
             $this->headSentinel,
             new VisitedNodesStack($this->headSkipNode, $this->headSentinel)
         );
     }
 
+    public function testInsertAuxiliaryNodes(): void
+    {
+        $visitedStack = new VisitedNodesStack(
+            $this->headSkipNode,
+            $this->threeSkipNode,
+            $this->threeNode,
+            $this->sixNode
+        );
 
-    protected function assertSkipListResult(
+        $newlyCreatedNode = $this->eightNode;
+
+        $this->skipList->insertAuxiliaryNodes($visitedStack, $newlyCreatedNode);
+
+        /** @var SkipNode $newlyCreatedSkipNode */
+        $newlyCreatedSkipNode = $this->threeSkipNode->nextNode;
+
+        $this->assertSame($this->threeSkipNode->nextNode, $newlyCreatedSkipNode);
+        $this->assertSame($this->nineSkipNode, $newlyCreatedSkipNode->nextNode);
+        $this->assertSame($newlyCreatedNode, $newlyCreatedSkipNode->nextLayerNode);
+    }
+
+
+    protected function assertSkipListSearch(
         mixed $dataToSearch,
         Node $expectedFinalNode,
         VisitedNodesStack $expectedVisitedNodes
     ): void {
-        $service = new SkipList(new Alphanumeric());
 
         /** @var SkipListResult $result */
-        $result = $service->getNodeThatPrecedes($dataToSearch, $this->headSkipNode);
+        $result = $this->skipList->getNodeThatPrecedes($dataToSearch, $this->headSkipNode);
 
         $this->assertSame(
             $expectedFinalNode,

@@ -6,7 +6,9 @@ namespace Mano\SortedLinkedList;
 
 use Mano\SortedLinkedList\Iterator\DataIterator;
 use Mano\SortedLinkedList\Iterator\IteratorInterface;
+use Mano\SortedLinkedList\Search\BuildAuxiliaryNodesInterface;
 use Mano\SortedLinkedList\Search\SearchInterface;
+use Mano\SortedLinkedList\Search\TraceableResultInterface;
 
 /**
  * @implements \IteratorAggregate<?Node>
@@ -37,13 +39,31 @@ class SortedLinkedList implements \IteratorAggregate
 
     public function push(mixed $data): void
     {
-        $closestNode = $this->search->getNodeThatPrecedes($data, $this->sentinelHead)->getResult();
-        $this->factory->createAfterNode($closestNode, $data);
+        $result = $this->search->getNodeThatPrecedes($data, $this->sentinelHead);
+
+        $newlyInsertedNode = $this->factory->createAfterNode($result->getNode(), $data);
+
+        if($this->search instanceof BuildAuxiliaryNodesInterface) {
+            assert($result instanceof TraceableResultInterface);
+
+            $this->search->insertAuxiliaryNodes(
+                $result->getVisitedSkipNodesStack(),
+                $newlyInsertedNode
+            );
+        }
+
+        unset($result);
     }
 
     public function find(mixed $data): ?Node
     {
-        $closestNode = $this->search->getNodeThatPrecedes($data, $this->sentinelHead)->getResult();
+
+        $result = $this->search->getNodeThatPrecedes($data, $this->sentinelHead);
+
+        $closestNode = $result->getNode();
+
+        unset($result);
+
         if($closestNode->nextNode && $closestNode->nextNode->data === $data) {
             return $closestNode->nextNode;
         }

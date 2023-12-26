@@ -6,8 +6,9 @@ namespace Mano\SortedLinkedList\Search\SkipList;
 
 use Mano\SortedLinkedList\Node;
 use Mano\SortedLinkedList\Search\SearchResultInterface;
+use Mano\SortedLinkedList\Search\TraceableResultInterface;
 
-class SkipListResult implements SearchResultInterface
+class SkipListResult implements SearchResultInterface, TraceableResultInterface
 {
     public function __construct(
         private readonly Node $node,
@@ -20,7 +21,7 @@ class SkipListResult implements SearchResultInterface
         return $this->visitedSkipNodesStack;
     }
 
-    public function getResult(): Node
+    public function getNode(): Node
     {
         return $this->node;
     }

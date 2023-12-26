@@ -10,10 +10,10 @@ class SkipNode extends Node
 {
     public Node $nextLayerNode;
 
-    public function __construct(mixed $data, Node $nextLayerNode, ?Node $nextNode = null)
+    public function __construct(Node $nextLayerNode, ?SkipNode $nextSkipNode = null)
     {
-        $this->nextLayerNode = $nextLayerNode;
+        parent::__construct($nextLayerNode->data, $nextSkipNode);
 
-        parent::__construct($data, $nextNode);
+        $this->nextLayerNode = $nextLayerNode;
     }
 }

@@ -5,6 +5,11 @@ declare(strict_types=1);
 use Mano\SortedLinkedList\Comparator\Alphanumeric;
 use Mano\SortedLinkedList\Node;
 use Mano\SortedLinkedList\Search\LinearSearch\LinearSearch;
+use Mano\SortedLinkedList\Search\SkipList\CoinFlipper;
+use Mano\SortedLinkedList\Search\SkipList\SkipList;
+use Mano\SortedLinkedList\Search\SkipList\SkipListResult;
+use Mano\SortedLinkedList\Search\SkipList\SkipNodeFactory;
+use Mano\SortedLinkedList\Search\TraceableResultInterface;
 use Mano\SortedLinkedList\SortedLinkedList;
 use PHPUnit\Framework\TestCase;
 
@@ -117,5 +122,32 @@ class SortedLinkedListIntegrationTest extends TestCase
         yield   [3, 3];
         yield   [5, 5];
         yield   [6, null];
+    }
+
+    public function testSkipList(): void
+    {
+        $coinFlipper = new CoinFlipper(0.2);
+        $skipNodeFactory = new SkipNodeFactory();
+        $comparator = new Alphanumeric();
+        $skipList = new SkipList($comparator, $skipNodeFactory, $coinFlipper);
+        $list = new SortedLinkedList($skipList);
+
+        $list->push(1);
+
+        for ($i = 1; $i < 1000; $i++) {
+            $list->push(rand(2, 999));
+        }
+
+        $list->push(1000);
+
+        /** @var SkipListResult $result */
+        $result = $skipList->getNodeThatPrecedes(1000, $list->find(1));
+
+        $this->assertSame(1000, $result->getNode()->nextNode?->data);
+
+        $this->assertLessThan(
+            300,
+            $result->getVisitedSkipNodesStack()->count()
+        );
     }
 }
