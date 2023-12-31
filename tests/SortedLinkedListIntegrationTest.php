@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Mano\SortedLinkedList\Comparator\Alphanumeric;
 use Mano\SortedLinkedList\Node;
 use Mano\SortedLinkedList\Search\LinearSearch\LinearSearch;
-use Mano\SortedLinkedList\Search\SkipList\CoinFlipper;
+use Mano\SortedLinkedList\Search\SkipList\LayerResolver;
 use Mano\SortedLinkedList\Search\SkipList\SkipList;
 use Mano\SortedLinkedList\Search\SkipList\SkipListResult;
 use Mano\SortedLinkedList\Search\SkipList\SkipNodeFactory;
@@ -126,10 +126,10 @@ class SortedLinkedListIntegrationTest extends TestCase
 
     public function testSkipList(): void
     {
-        $coinFlipper = new CoinFlipper(0.2);
-        $skipNodeFactory = new SkipNodeFactory();
+        $layerResolver = new LayerResolver(0.2,1);
+        $skipNodeFactory = new SkipNodeFactory($layerResolver);
         $comparator = new Alphanumeric();
-        $skipList = new SkipList($comparator, $skipNodeFactory, $coinFlipper);
+        $skipList = new SkipList($comparator, $skipNodeFactory, $layerResolver);
         $list = new SortedLinkedList($skipList);
 
         $list->push(1);

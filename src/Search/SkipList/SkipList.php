@@ -17,7 +17,7 @@ final class SkipList implements SearchInterface, BuildAuxiliaryNodesInterface
     public function __construct(
         private readonly ComparatorInterface $comparator,
         private readonly SkipNodeFactory $skipNodeFactory,
-        private readonly CoinFlipper $coinFlipper,
+        private readonly LayerResolver $layerResolver,
     ) {
     }
 
@@ -26,7 +26,12 @@ final class SkipList implements SearchInterface, BuildAuxiliaryNodesInterface
         $stack = new VisitedNodesStack();
 
         if(isset($this->sentinelHead) === false) {
-            $this->sentinelHead = $this->skipNodeFactory->createSentinelHead($startingNode);
+			// in case only search is tested, starting node is already created skip sentinel
+			if($startingNode instanceof SkipNode) {
+				$this->sentinelHead = $startingNode;
+			} else {
+            	$this->sentinelHead = $this->skipNodeFactory->createSkipSentinelsInAllLayers($startingNode);
+			}
         }
 
         $currentNode = $this->sentinelHead;
@@ -54,7 +59,7 @@ final class SkipList implements SearchInterface, BuildAuxiliaryNodesInterface
 
     public function insertAuxiliaryNodes(VisitedNodesStack $visitedNodesStack, Node $newlyInsertedNode): void
     {
-        if($this->coinFlipper->isHead() === false) {
+        if($this->layerResolver->howManyLayersToSpan() === 0) {
             return;
         }
 

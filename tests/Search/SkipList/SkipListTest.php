@@ -4,7 +4,7 @@ namespace Search\SkipList;
 
 use Mano\SortedLinkedList\Comparator\Alphanumeric;
 use Mano\SortedLinkedList\Node;
-use Mano\SortedLinkedList\Search\SkipList\CoinFlipper;
+use Mano\SortedLinkedList\Search\SkipList\LayerResolver;
 use Mano\SortedLinkedList\Search\SkipList\SkipList;
 use Mano\SortedLinkedList\Search\SkipList\SkipListResult;
 use Mano\SortedLinkedList\Search\SkipList\SkipNode;
@@ -24,13 +24,17 @@ class SkipListTest extends TestCase
     private Node $oneNode;
     private Node $headSentinel;
 
-    private SkipNode $tailSkipNode;
-    private SkipNode $nineSkipNode;
-    private SkipNode $threeSkipNode;
-    private SkipNode $headSkipNode;
+    private SkipNode $tailSkipNodeLayer1;
+    private SkipNode $nineSkipNodeLayer1;
+    private SkipNode $threeSkipNodeLayer1;
+    private SkipNode $headSkipNodeLayer1;
+
+	private SkipNode $tailSkipNodeLayer2;
+	private SkipNode $nineSkipNodeLayer2;
+	private SkipNode $headSkipNodeLayer2;
 
     /**
-     * @var Stub&CoinFlipper
+     * @var Stub&LayerResolver
      */
     private $coinFlipper;
 
@@ -39,6 +43,8 @@ class SkipListTest extends TestCase
     protected function setUp(): void
     {
         /**
+		 * -INF ---------------------------------- 9 --- INF
+		 *   |                                     |      |
          * -INF ---------------- 3 --------------- 9 --- INF
          *   |                   |                 |      |
          * -INF --- 1 ---- 2 --- 3 --- 6 --- 8 --- 9 --- INF
@@ -53,15 +59,19 @@ class SkipListTest extends TestCase
         $this->oneNode = new Node(1, $this->twoNode);
         $this->headSentinel = new Node(-INF, $this->oneNode);
 
-        $this->tailSkipNode = new SkipNode($this->tailSentinel, null);
-        $this->nineSkipNode = new SkipNode($this->nineNode, $this->tailSkipNode);
-        $this->threeSkipNode = new SkipNode($this->threeNode, $this->nineSkipNode);
-        $this->headSkipNode = new SkipNode($this->headSentinel, $this->threeSkipNode);
+        $this->tailSkipNodeLayer1 = new SkipNode($this->tailSentinel, null);
+        $this->nineSkipNodeLayer1 = new SkipNode($this->nineNode, $this->tailSkipNodeLayer1);
+        $this->threeSkipNodeLayer1 = new SkipNode($this->threeNode, $this->nineSkipNodeLayer1);
+        $this->headSkipNodeLayer1 = new SkipNode($this->headSentinel, $this->threeSkipNodeLayer1);
 
-        $this->coinFlipper = $this->createStub(CoinFlipper::class);
-        $this->coinFlipper->method('isHead')->willReturn(true);
+		$this->tailSkipNodeLayer2 = new SkipNode($this->tailSkipNodeLayer1, null);
+		$this->nineSkipNodeLayer2 = new SkipNode($this->nineSkipNodeLayer1, $this->tailSkipNodeLayer2);
+		$this->headSkipNodeLayer2 = new SkipNode($this->headSkipNodeLayer1, $this->nineSkipNodeLayer2);
 
-        $this->skipList = new SkipList(new Alphanumeric(), new SkipNodeFactory(), $this->coinFlipper);
+        $this->coinFlipper = $this->createStub(LayerResolver::class);
+        $this->coinFlipper->method('howManyLayersToSpan')->willReturn(1);
+
+        $this->skipList = new SkipList(new Alphanumeric(), new SkipNodeFactory($this->coinFlipper), $this->coinFlipper);
     }
 
     public function testSearchEmpty(): void
@@ -70,12 +80,14 @@ class SkipListTest extends TestCase
         $head = new Node(-INF, $tail);
 
         $skipTail = new SkipNode($tail, null);
-        $this->headSkipNode = new SkipNode($head, $skipTail);
+        $this->headSkipNodeLayer1 = new SkipNode($head, $skipTail);
+		$skipTailLayer2 = new SkipNode($skipTail, null);
+        $this->headSkipNodeLayer2 = new SkipNode($this->headSkipNodeLayer1, $skipTailLayer2);
 
         $this->assertSkipListSearch(
             2,
             $head,
-            new VisitedNodesStack($this->headSkipNode, $head)
+            new VisitedNodesStack($this->headSkipNodeLayer2, $this->headSkipNodeLayer1, $head)
         );
     }
 
@@ -84,13 +96,13 @@ class SkipListTest extends TestCase
         $this->assertSkipListSearch(
             '8',
             $this->sixNode,
-            new VisitedNodesStack($this->headSkipNode, $this->threeSkipNode, $this->threeNode, $this->sixNode)
+            new VisitedNodesStack($this->headSkipNodeLayer2, $this->headSkipNodeLayer1, $this->threeSkipNodeLayer1, $this->threeNode, $this->sixNode)
         );
 
         $this->assertSkipListSearch(
             '6',
             $this->threeNode,
-            new VisitedNodesStack($this->headSkipNode, $this->threeSkipNode, $this->threeNode)
+            new VisitedNodesStack($this->headSkipNodeLayer2, $this->headSkipNodeLayer1, $this->threeSkipNodeLayer1, $this->threeNode)
         );
     }
 
@@ -99,22 +111,13 @@ class SkipListTest extends TestCase
         $this->assertSkipListSearch(
             '1',
             $this->headSentinel,
-            new VisitedNodesStack($this->headSkipNode, $this->headSentinel)
+            new VisitedNodesStack($this->headSkipNodeLayer2, $this->headSkipNodeLayer1, $this->headSentinel)
         );
 
         $this->assertSkipListSearch(
             '3',
             $this->twoNode,
-            new VisitedNodesStack($this->headSkipNode, $this->headSentinel, $this->oneNode, $this->twoNode)
-        );
-    }
-
-    public function testSearchMax(): void
-    {
-        $this->assertSkipListSearch(
-            25,
-            $this->nineNode,
-            new VisitedNodesStack($this->headSkipNode, $this->threeSkipNode, $this->nineSkipNode, $this->nineNode)
+            new VisitedNodesStack($this->headSkipNodeLayer2, $this->headSkipNodeLayer1, $this->headSentinel, $this->oneNode, $this->twoNode)
         );
     }
 
@@ -123,17 +126,25 @@ class SkipListTest extends TestCase
         $this->assertSkipListSearch(
             -4,
             $this->headSentinel,
-            new VisitedNodesStack($this->headSkipNode, $this->headSentinel)
+            new VisitedNodesStack($this->headSkipNodeLayer2, $this->headSkipNodeLayer1, $this->headSentinel)
         );
     }
+
+	public function testSearchMax(): void
+	{
+		$this->assertSkipListSearch(
+			25,
+			$this->nineNode,
+			new VisitedNodesStack($this->headSkipNodeLayer2, $this->nineSkipNodeLayer2, $this->nineSkipNodeLayer1, $this->nineNode)
+		);
+	}
 
     public function testInsertAuxiliaryNodes(): void
     {
         $visitedStack = new VisitedNodesStack(
-            $this->headSkipNode,
-            $this->threeSkipNode,
-            $this->threeNode,
-            $this->sixNode
+			$this->headSkipNodeLayer2,
+			$this->headSkipNodeLayer1,
+            $this->threeSkipNodeLayer1,
         );
 
         $newlyCreatedNode = $this->eightNode;
@@ -141,10 +152,10 @@ class SkipListTest extends TestCase
         $this->skipList->insertAuxiliaryNodes($visitedStack, $newlyCreatedNode);
 
         /** @var SkipNode $newlyCreatedSkipNode */
-        $newlyCreatedSkipNode = $this->threeSkipNode->nextNode;
+        $newlyCreatedSkipNode = $this->threeSkipNodeLayer1->nextNode;
 
-        $this->assertSame($this->threeSkipNode->nextNode, $newlyCreatedSkipNode);
-        $this->assertSame($this->nineSkipNode, $newlyCreatedSkipNode->nextNode);
+        $this->assertSame($this->threeSkipNodeLayer1->nextNode, $newlyCreatedSkipNode);
+        $this->assertSame($this->nineSkipNodeLayer1, $newlyCreatedSkipNode->nextNode);
         $this->assertSame($newlyCreatedNode, $newlyCreatedSkipNode->nextLayerNode);
     }
 
@@ -156,7 +167,7 @@ class SkipListTest extends TestCase
     ): void {
 
         /** @var SkipListResult $result */
-        $result = $this->skipList->getNodeThatPrecedes($dataToSearch, $this->headSkipNode);
+        $result = $this->skipList->getNodeThatPrecedes($dataToSearch, $this->headSkipNodeLayer2);
 
         $this->assertSame(
             $expectedFinalNode,
