@@ -8,41 +8,62 @@ use Mano\SortedLinkedList\Node;
 
 class SkipNodeFactory
 {
-	public function __construct(private readonly LayerResolver $layerResolver)
-	{
-	}
-
-	public function createSkipNode(Node $finalNode, SkipNode $lastSkipNode): void
+    public function __construct(private readonly LayerResolver $layerResolver)
     {
-        assert($lastSkipNode->nextNode instanceof SkipNode);
-
-        $newSkipNode =  new SkipNode($finalNode, $lastSkipNode->nextNode);
-
-        $lastSkipNode->nextNode = $newSkipNode;
     }
 
-	public function createSkipSentinelsInAllLayers(Node $startingNode): SkipNode
-	{
-		assert($startingNode instanceof SkipNode === false);
+    public function createSkipNodeInMultipleLayers(
+        Node $newlyInsertedNode,
+        VisitedNodesStack $visitedNodesStack,
+        int $layersToSpan
+    ): void {
+        $previouslyMadeNode = $newlyInsertedNode;
 
-		$deepestHeadSentinel = $startingNode;
-		// Sentinel tail will point to the same tail node, but it does not matter.
-		$deepestTailSentinel = new Node(INF, null);
+        $visitedNodesStack->rewind();
+        for ($i = 0; $i < $layersToSpan; $i++) {
+            $toprightSkipNodeInLayer = $visitedNodesStack->current();
 
-		for($i = 0; $i < $this->layerResolver->getMaxLayers(); $i++) {
+            assert($toprightSkipNodeInLayer instanceof SkipNode);
 
-			if($i > 1) {
-				assert($startingNode instanceof SkipNode);
-			}
+            $previouslyMadeNode = $this->createSkipNode($previouslyMadeNode, $toprightSkipNodeInLayer);
 
-			assert($deepestHeadSentinel->isHeadSentinel());
+            $visitedNodesStack->next();
+        }
+    }
 
-			$deepestHeadSentinel = new SkipNode(
-				$deepestHeadSentinel,
-				new SkipNode($deepestTailSentinel)
-			);
-		}
+    private function createSkipNode(Node $nextLayerNode, SkipNode $nextSkipNode): SkipNode
+    {
+        assert($nextSkipNode->nextNode instanceof SkipNode);
 
-		return $deepestHeadSentinel;
-	}
+        $newSkipNode = new SkipNode($nextLayerNode, $nextSkipNode->nextNode);
+
+        $nextSkipNode->nextNode = $newSkipNode;
+
+        return $newSkipNode;
+    }
+
+    public function createSkipSentinelsInAllLayers(Node $startingNode): SkipNode
+    {
+        $deepestHeadSentinel = $startingNode;
+        // Sentinel tail will point to the same tail node, but it does not matter.
+        $deepestTailSentinel = new Node(INF, null);
+
+        for($i = 0; $i < $this->layerResolver->getMaxLayers(); $i++) {
+
+            if($i > 1) {
+                assert($deepestHeadSentinel instanceof SkipNode);
+            }
+
+            assert($deepestHeadSentinel->isHeadSentinel());
+
+            $deepestHeadSentinel = new SkipNode(
+                $deepestHeadSentinel,
+                new SkipNode($deepestTailSentinel)
+            );
+        }
+
+        assert($deepestHeadSentinel instanceof SkipNode);
+
+        return $deepestHeadSentinel;
+    }
 }

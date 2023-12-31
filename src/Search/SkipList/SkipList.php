@@ -24,14 +24,15 @@ final class SkipList implements SearchInterface, BuildAuxiliaryNodesInterface
     public function getNodeThatPrecedes(mixed $data, Node $startingNode): SearchResultInterface
     {
         $stack = new VisitedNodesStack();
+        $maxSkipNodes = new VisitedNodesStack();
 
         if(isset($this->sentinelHead) === false) {
-			// in case only search is tested, starting node is already created skip sentinel
-			if($startingNode instanceof SkipNode) {
-				$this->sentinelHead = $startingNode;
-			} else {
-            	$this->sentinelHead = $this->skipNodeFactory->createSkipSentinelsInAllLayers($startingNode);
-			}
+            // in case only search is tested, starting node is already created skip sentinel
+            if($startingNode instanceof SkipNode) {
+                $this->sentinelHead = $startingNode;
+            } else {
+                $this->sentinelHead = $this->skipNodeFactory->createSkipSentinelsInAllLayers($startingNode);
+            }
         }
 
         $currentNode = $this->sentinelHead;
@@ -44,10 +45,11 @@ final class SkipList implements SearchInterface, BuildAuxiliaryNodesInterface
 
             if ($isGreaterOrEqualToCurrentNode && $isLessThanOrEqualToNextNode) {
                 if ($currentNode instanceof SkipNode) {
+                    $maxSkipNodes->push($currentNode);
                     $currentNode = $currentNode->nextLayerNode;
                     continue;
                 } else {
-                    return new SkipListResult($currentNode, $stack);
+                    return new SkipListResult($currentNode, $stack, $maxSkipNodes);
                 }
             }
 
@@ -59,16 +61,15 @@ final class SkipList implements SearchInterface, BuildAuxiliaryNodesInterface
 
     public function insertAuxiliaryNodes(VisitedNodesStack $visitedNodesStack, Node $newlyInsertedNode): void
     {
-        if($this->layerResolver->howManyLayersToSpan() === 0) {
+        $layersToSpan = $this->layerResolver->howManyLayersToSpan();
+        if($layersToSpan === 0) {
             return;
         }
 
-        $lastSkipNode = $visitedNodesStack->getLastSkipNode();
-
-        if($lastSkipNode === null) {
-            throw new \LogicException('At least skip node sentinel must exists.');
-        }
-
-        $this->skipNodeFactory->createSkipNode($newlyInsertedNode, $lastSkipNode);
+        $this->skipNodeFactory->createSkipNodeInMultipleLayers(
+            $newlyInsertedNode,
+            $visitedNodesStack,
+            $layersToSpan
+        );
     }
 }

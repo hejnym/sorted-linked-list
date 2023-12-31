@@ -47,7 +47,7 @@ class SortedLinkedList implements \IteratorAggregate
             assert($result instanceof TraceableResultInterface);
 
             $this->search->insertAuxiliaryNodes(
-                $result->getVisitedSkipNodesStack(),
+                $result->getMaxSkipNodesStack(),
                 $newlyInsertedNode
             );
         }

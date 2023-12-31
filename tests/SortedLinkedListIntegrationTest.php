@@ -126,13 +126,15 @@ class SortedLinkedListIntegrationTest extends TestCase
 
     public function testSkipList(): void
     {
-        $layerResolver = new LayerResolver(0.2,1);
+        $layerResolver = new LayerResolver(0.2, 5);
         $skipNodeFactory = new SkipNodeFactory($layerResolver);
         $comparator = new Alphanumeric();
         $skipList = new SkipList($comparator, $skipNodeFactory, $layerResolver);
         $list = new SortedLinkedList($skipList);
 
         $list->push(1);
+        $item1 =  $list->find(1);
+        $this->assertNotNull($item1);
 
         for ($i = 1; $i < 1000; $i++) {
             $list->push(rand(2, 999));
@@ -140,13 +142,14 @@ class SortedLinkedListIntegrationTest extends TestCase
 
         $list->push(1000);
 
+
         /** @var SkipListResult $result */
-        $result = $skipList->getNodeThatPrecedes(1000, $list->find(1));
+        $result = $skipList->getNodeThatPrecedes(1000, $item1);
 
         $this->assertSame(1000, $result->getNode()->nextNode?->data);
 
         $this->assertLessThan(
-            300,
+            50,
             $result->getVisitedSkipNodesStack()->count()
         );
     }

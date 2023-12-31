@@ -12,17 +12,26 @@ class SkipListResult implements SearchResultInterface, TraceableResultInterface
 {
     public function __construct(
         private readonly Node $node,
-        private readonly VisitedNodesStack $visitedSkipNodesStack
+        private readonly VisitedNodesStack $allVisitedSkipNodesStack,
+        private readonly VisitedNodesStack $maxSkipNodesStack
     ) {
     }
 
     public function getVisitedSkipNodesStack(): VisitedNodesStack
     {
-        return $this->visitedSkipNodesStack;
+        return $this->allVisitedSkipNodesStack;
     }
 
     public function getNode(): Node
     {
         return $this->node;
+    }
+
+    /**
+     * @return VisitedNodesStack
+     */
+    public function getMaxSkipNodesStack(): VisitedNodesStack
+    {
+        return $this->maxSkipNodesStack;
     }
 }
