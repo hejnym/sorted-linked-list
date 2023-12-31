@@ -71,7 +71,7 @@ class SkipListTest extends TestCase
         $this->coinFlipper = $this->createStub(LayerResolver::class);
         $this->coinFlipper->method('howManyLayersToSpan')->willReturn(1);
 
-        $this->skipList = new SkipList(new Alphanumeric(), new SkipNodeFactory($this->coinFlipper), $this->coinFlipper);
+        $this->skipList = new SkipList(new Alphanumeric(), new SkipNodeFactory($this->coinFlipper));
     }
 
     public function testSearchEmpty(): void
@@ -176,7 +176,7 @@ class SkipListTest extends TestCase
 
         $this->assertEquals(
             iterator_to_array($expectedVisitedNodes),
-            iterator_to_array($result->getVisitedSkipNodesStack()),
+            iterator_to_array($result->getAllVisitedNodesStack()),
         );
     }
 }

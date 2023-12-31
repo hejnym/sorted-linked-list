@@ -87,7 +87,7 @@ class SortedLinkedListIntegrationTest extends TestCase
             $i++;
 
             if($i === $atLoop) {
-                $this->list->push($valuePushed); // TODO: change
+                $this->list->push($valuePushed);
             }
         }
 
@@ -129,7 +129,7 @@ class SortedLinkedListIntegrationTest extends TestCase
         $layerResolver = new LayerResolver(0.2, 5);
         $skipNodeFactory = new SkipNodeFactory($layerResolver);
         $comparator = new Alphanumeric();
-        $skipList = new SkipList($comparator, $skipNodeFactory, $layerResolver);
+        $skipList = new SkipList($comparator, $skipNodeFactory);
         $list = new SortedLinkedList($skipList);
 
         $list->push(1);
@@ -150,7 +150,7 @@ class SortedLinkedListIntegrationTest extends TestCase
 
         $this->assertLessThan(
             50,
-            $result->getVisitedSkipNodesStack()->count()
+            $result->getAllVisitedNodesStack()->count()
         );
     }
 }

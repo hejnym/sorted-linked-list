@@ -7,5 +7,5 @@ use Mano\SortedLinkedList\Search\SkipList\VisitedNodesStack;
 
 interface BuildAuxiliaryNodesInterface
 {
-    public function insertAuxiliaryNodes(VisitedNodesStack $visitedNodesStack, Node $newlyInsertedNode): void;
+    public function insertAuxiliaryNodes(VisitedNodesStack $visitedSkipNodesStack, Node $newlyInsertedNode): void;
 }

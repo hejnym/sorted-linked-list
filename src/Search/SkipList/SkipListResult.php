@@ -13,11 +13,11 @@ class SkipListResult implements SearchResultInterface, TraceableResultInterface
     public function __construct(
         private readonly Node $node,
         private readonly VisitedNodesStack $allVisitedSkipNodesStack,
-        private readonly VisitedNodesStack $maxSkipNodesStack
+        private readonly VisitedNodesStack $topRightSkipNodesFromEachLayerStack
     ) {
     }
 
-    public function getVisitedSkipNodesStack(): VisitedNodesStack
+    public function getAllVisitedNodesStack(): VisitedNodesStack
     {
         return $this->allVisitedSkipNodesStack;
     }
@@ -30,8 +30,8 @@ class SkipListResult implements SearchResultInterface, TraceableResultInterface
     /**
      * @return VisitedNodesStack
      */
-    public function getMaxSkipNodesStack(): VisitedNodesStack
+    public function getVisitedAuxiliaryNodesStack(): VisitedNodesStack
     {
-        return $this->maxSkipNodesStack;
+        return $this->topRightSkipNodesFromEachLayerStack;
     }
 }

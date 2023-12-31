@@ -47,7 +47,7 @@ class SortedLinkedList implements \IteratorAggregate
             assert($result instanceof TraceableResultInterface);
 
             $this->search->insertAuxiliaryNodes(
-                $result->getMaxSkipNodesStack(),
+                $result->getVisitedAuxiliaryNodesStack(),
                 $newlyInsertedNode
             );
         }
@@ -73,7 +73,7 @@ class SortedLinkedList implements \IteratorAggregate
 
     public function delete(): void
     {
-        // TODO - implement in similar manner as push
+        // TODO
     }
 
     public function getIterator(): IteratorInterface

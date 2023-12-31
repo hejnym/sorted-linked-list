@@ -8,6 +8,6 @@ use Mano\SortedLinkedList\Search\SkipList\VisitedNodesStack;
 
 interface TraceableResultInterface
 {
-    public function getVisitedSkipNodesStack(): VisitedNodesStack;
-    public function getMaxSkipNodesStack(): VisitedNodesStack;
+    public function getAllVisitedNodesStack(): VisitedNodesStack;
+    public function getVisitedAuxiliaryNodesStack(): VisitedNodesStack;
 }

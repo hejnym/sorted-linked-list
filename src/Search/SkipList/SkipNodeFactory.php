@@ -15,9 +15,14 @@ class SkipNodeFactory
     public function createSkipNodeInMultipleLayers(
         Node $newlyInsertedNode,
         VisitedNodesStack $visitedNodesStack,
-        int $layersToSpan
     ): void {
-        $previouslyMadeNode = $newlyInsertedNode;
+        $layersToSpan = $this->layerResolver->howManyLayersToSpan();
+
+        if($layersToSpan === 0) {
+            return;
+        }
+
+        $previouslyCreatedNode = $newlyInsertedNode;
 
         $visitedNodesStack->rewind();
         for ($i = 0; $i < $layersToSpan; $i++) {
@@ -25,7 +30,7 @@ class SkipNodeFactory
 
             assert($toprightSkipNodeInLayer instanceof SkipNode);
 
-            $previouslyMadeNode = $this->createSkipNode($previouslyMadeNode, $toprightSkipNodeInLayer);
+            $previouslyCreatedNode = $this->createSkipNode($previouslyCreatedNode, $toprightSkipNodeInLayer);
 
             $visitedNodesStack->next();
         }

@@ -17,19 +17,4 @@ class VisitedNodesStack extends \SplStack
             $this->push($node);
         }
     }
-
-    public function getLastSkipNode(): ?SkipNode
-    {
-
-        $this->rewind();
-
-        while($this->valid()) {
-            if($this->current() instanceof SkipNode) {
-                return $this->current();
-            }
-            $this->next();
-        }
-
-        return null;
-    }
 }

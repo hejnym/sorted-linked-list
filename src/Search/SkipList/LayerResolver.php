@@ -28,9 +28,6 @@ class LayerResolver
         return min($layers, $this->maxLayers);
     }
 
-    /**
-     * @return int
-     */
     public function getMaxLayers(): int
     {
         return $this->maxLayers;
