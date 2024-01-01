@@ -3,76 +3,78 @@
 declare(strict_types=1);
 
 use Mano\SortedLinkedList\Comparator\Alphanumeric;
-use Mano\SortedLinkedList\Node;
 use Mano\SortedLinkedList\Search\LinearSearch\LinearSearch;
 use Mano\SortedLinkedList\Search\SkipList\LayerResolver;
 use Mano\SortedLinkedList\Search\SkipList\SkipList;
 use Mano\SortedLinkedList\Search\SkipList\SkipListResult;
 use Mano\SortedLinkedList\Search\SkipList\SkipNodeFactory;
-use Mano\SortedLinkedList\Search\TraceableResultInterface;
 use Mano\SortedLinkedList\SortedLinkedList;
 use PHPUnit\Framework\TestCase;
 
 class SortedLinkedListIntegrationTest extends TestCase
 {
-    private SortedLinkedList $list;
-    private LinearSearch $search;
+    private SortedLinkedList $listWithLinearSearch;
+    private SortedLinkedList $listWithSkipList;
+    private LinearSearch $linearSearch;
+    private SkipList $skipList;
+    /** @var SortedLinkedList[] */
+    private array $bothLists;
 
     protected function setUp(): void
     {
-        $this->search = new LinearSearch(new Alphanumeric());
-        $this->list = new SortedLinkedList($this->search);
-    }
+        $comparator = new Alphanumeric();
 
-    public function testCreateFromArray(): void
-    {
-        $expectedHead = new Node(
-            'first',
-            new Node('second', null)
-        );
+        // skip list
+        $layerResolver = new LayerResolver(0.25, 5);
+        $skipNodeFactory = new SkipNodeFactory($layerResolver);
+        $this->skipList = new SkipList($comparator, $skipNodeFactory);
 
-        $this->list->createFromArray(['first', 'second']);
+        // linear search
+        $this->linearSearch = new LinearSearch($comparator);
 
-        $iterator = $this->list->getIterator();
+        $this->listWithLinearSearch = new SortedLinkedList($this->linearSearch);
+        $this->listWithSkipList = new SortedLinkedList($this->skipList);
 
-        $this->assertEquals($expectedHead->data, $iterator->current());
-        $iterator->next();
-        $this->assertEquals($expectedHead->nextNode?->data, $iterator->current());
+        $this->bothLists = [$this->listWithLinearSearch, $this->listWithSkipList];
     }
 
 
     public function testPushToEmptyList(): void
     {
-        $this->assertTrue($this->list->isEmpty());
-        $this->list->push('2');
-        $this->assertFalse($this->list->isEmpty());
+        foreach ($this->bothLists as $list) {
+            $this->assertTrue($list->isEmpty());
+            $list->push('2');
+            $this->assertFalse($list->isEmpty());
 
-        $this->assertSame(['2'], iterator_to_array($this->list));
+            $this->assertSame(['2'], iterator_to_array($list));
+        }
     }
 
     /**
      * @dataProvider provideMultipleVariants
-     * @param array<mixed> $currentList
+     * @param array<mixed> $itemsToBePushed
      * @param array<mixed> $expectedData
      */
-    public function testPushMultipleVariants(array $currentList, mixed $newData, array $expectedData): void
+    public function testPushMultipleVariants(array $itemsToBePushed, array $expectedData): void
     {
-        $this->list->createFromArray($currentList);
+        foreach ($this->bothLists as $list) {
+            foreach ($itemsToBePushed as $item) {
+                $list->push($item);
+            }
 
-        $this->list->push($newData);
-
-        $this->assertSame($expectedData, iterator_to_array($this->list));
+            $this->assertSame($expectedData, iterator_to_array($list));
+        }
     }
 
     public static function provideMultipleVariants(): Iterator
     {
-        // $currentList, $newData, $expectedData
-        yield  'push to first place' => [[8, '3'], '2', ['2', '3', 8]];
-        yield  'push to last place' => [[3, '1'], '5', ['1', 3, '5']];
-        yield  'push to equal place' => [[1, '3', 3, 5], 3 , [1, 3, 3, '3', 5]];
-        yield  'push to alphabet' => [['a', 'c', 'd'], 'b' , ['a', 'b', 'c', 'd']];
-        yield  'push to alphanumeric' => [[1, 'b', '4'], '5' , [1, '4', '5', 'b']];
-        yield  'test edge cases' => [[1, 4, 5, 5], '5' , [1, 4, '5', 5, 5]];
+        // $itemsToBePushed, $expectedData
+        yield  'push to first place' => [[8, '3','2'], ['2', '3', 8]];
+        yield  'push to last place' => [[3, '1','5'], ['1', 3, '5']];
+        yield  'push to equal place' => [[1, '3', 3, 5,  3 ], [1, 3, 3, '3', 5]];
+        yield  'push to alphabet' => [['a', 'c', 'd', 'b'] , ['a', 'b', 'c', 'd']];
+        yield  'push to alphanumeric' => [[1, 'b', '4', '5'] , [1, '4', '5', 'b']];
+        yield  'test edge cases' => [[1, 4, 5, 5, '5'],  [1, 4, '5', 5, 5]];
     }
 
     /**
@@ -80,18 +82,22 @@ class SortedLinkedListIntegrationTest extends TestCase
      */
     public function testPushDuringLoop(int $valuePushed, int $atLoop, int $loopsCount): void
     {
-        $this->list->createFromArray([1, 3, 5]);
+        foreach ($this->bothLists as $list) {
+            $list->push(1);
+            $list->push(3);
+            $list->push(5);
 
-        $i = 0;
-        foreach ($this->list as $move) {
-            $i++;
+            $i = 0;
+            foreach ($list as $move) {
+                $i++;
 
-            if($i === $atLoop) {
-                $this->list->push($valuePushed);
+                if($i === $atLoop) {
+                    $list->push($valuePushed);
+                }
             }
-        }
 
-        $this->assertSame($loopsCount, $i);
+            $this->assertSame($loopsCount, $i);
+        }
     }
 
     public static function provideLoops(): Iterator
@@ -103,19 +109,23 @@ class SortedLinkedListIntegrationTest extends TestCase
     }
 
     /**
-     * @dataProvider provideSearch
+     * @dataProvider provideSearchValues
      */
     public function testSearch(mixed $valueSearched, mixed $expectedResult): void
     {
-        $this->list->createFromArray([1, 3, 5]);
+        foreach ($this->bothLists as $list) {
+            $list->push(1);
+            $list->push(3);
+            $list->push(5);
 
-        $this->assertSame(
-            $expectedResult,
-            $this->list->find($valueSearched)?->data
-        );
+            $this->assertSame(
+                $expectedResult,
+                $list->find($valueSearched)?->data
+            );
+        }
     }
 
-    public static function provideSearch(): Iterator
+    public static function provideSearchValues(): Iterator
     {
         // int|string $valueSearched, bool $found
         yield   [2, null];
@@ -124,13 +134,9 @@ class SortedLinkedListIntegrationTest extends TestCase
         yield   [6, null];
     }
 
-    public function testSkipList(): void
+    public function testSkipListEffectivity(): void
     {
-        $layerResolver = new LayerResolver(0.2, 5);
-        $skipNodeFactory = new SkipNodeFactory($layerResolver);
-        $comparator = new Alphanumeric();
-        $skipList = new SkipList($comparator, $skipNodeFactory);
-        $list = new SortedLinkedList($skipList);
+        $list = $this->listWithSkipList;
 
         $list->push(1);
         $item1 =  $list->find(1);
@@ -144,12 +150,12 @@ class SortedLinkedListIntegrationTest extends TestCase
 
 
         /** @var SkipListResult $result */
-        $result = $skipList->getNodeThatPrecedes(1000, $item1);
+        $result = $this->skipList->getNodeThatPrecedes(1000, $item1);
 
         $this->assertSame(1000, $result->getNode()->nextNode?->data);
 
         $this->assertLessThan(
-            50,
+            50, // average is around 20, this value is exaggerated for edge cases
             $result->getAllVisitedNodesStack()->count()
         );
     }
